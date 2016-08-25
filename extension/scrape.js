@@ -157,8 +157,6 @@ var buildStudent = function(courses) {
     email: LS.get('email'),
     courses: courses
   };
-
-  Log(student);
 }
 
 buildProfile().then(waitForCalendar).then(parseSchedule).then(flattenCourses).then(buildStudent);
