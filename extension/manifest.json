@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+  "name": "Schedule Sync",
+  "description": "Example",
+  "version": "0.1",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://unify-ext.andover.edu/*"
+      ],
+      "js": [
+        "jquery-3.1.0.min.js",
+        "plugins/noty/packaged/jquery.noty.packaged.min.js",
+        "plugins/arrive/arrive.min.js",
+        "sync.js",
+        "scrape.js",
+        "prettify.js"
+      ]
+    }
+  ],
+  "homepage_url": "http://path/to/homepage"
+}
