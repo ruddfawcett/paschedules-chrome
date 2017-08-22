@@ -1,5 +1,28 @@
 // Helpers
 
+var Notification = {
+  show: function(text, type) {
+    return self.show(text, type, null);
+  },
+  show: function(text, type, cb) {
+    return noty({
+      theme: 'relax',
+      layout: 'topRight',
+      text: text,
+      timeout: 5000,
+      type: type
+    });
+  }
+}
+
+var Log = function(obj) {
+  if (typeof obj === 'string') {
+    console.log(`[SchedSync] ${obj}`);
+    return;
+  }
+  console.log('[SchedSync]', obj);
+}
+
 var LS = {
   prepend: 'schedsync-',
   get: function(k) {
@@ -15,27 +38,6 @@ var LS = {
   }
 };
 
-var Notification = {
-  show: function(text, type) {
-    return self.show(text, type, null);
-  },
-  show: function(text, type, cb) {
-    return noty({
-      theme: 'relax',
-      layout: 'topRight',
-      text: text,
-      type: type
-    });
-  }
-}
-
-var Log = function(obj) {
-  if (typeof obj === 'string') {
-    console.log(`[SchedSync] ${obj}`);
-    return;
-  }
-  console.log('[SchedSync]', obj);
-}
 
 // Scraping madness.
 
@@ -55,7 +57,7 @@ var establishUser = function() {
     LS.set('id', id);
     LS.set('grad', grad);
 
-    Notification.show('Finding your student information.', 'information');
+    Notification.show('Found student information.', 'information');
 
     P.resolve();
   }
@@ -68,7 +70,7 @@ var establishUser = function() {
 var parseSchedule = function() {
   Log('Parsing schedule and flitering classes.');
 
-  Notification.show('Parsing through your schedule.', 'information');
+  Notification.show('Parsing through your schedule.', 'warning');
 
   var P = $.Deferred();
 
@@ -93,24 +95,36 @@ var parseSchedule = function() {
         return true;
       }
 
-      var period = $($(cell).find('div')[0]).text();
-      var course = $($(cell).find('span')[0]).text();
-      var teacher = $($(cell).find('span')[1]).text();
-      var room = $($(cell).find('span')[2]).text();
+      var period = $($(cell).find('div')[0]).text().trim().replace(' ', '');
+      var course = $($(cell).find('span')[0]).text().trim().replace(' ', '');
+      var teacher = $($(cell).find('span')[1]).text().trim();
+      var room = $($(cell).find('span')[2]).text().trim().replace(' ', '');
 
-      var course_id = `${course}-${teacher}-${room}-${j}-${period}`;
+      var course_id = `${course}-${teacher.replace(' ', '')}-${room}-${j}-${period}`;
+      course_id = course_id.toLowerCase();
 
-      return courses.push(course_id);
+      var metadata =  {
+        "course_id": course_id,
+        "course": course,
+        "teacher": teacher
+      };
+
+      return courses.push(metadata);
     });
   }).promise().done(() => {
     P.resolve(courses);
+    Notification.show('Courses successfully parsed.', 'success');
   });
 
   return P.promise();
 }
 
 var syncData = function(courses) {
-  Log(courses);
+  Notification.show('Syncing your schedule.', 'warning');
+
+
+
+  // Notification.show('Unable to sync your schedule.', 'error');
 };
 
 establishUser().then(parseSchedule).then(syncData);

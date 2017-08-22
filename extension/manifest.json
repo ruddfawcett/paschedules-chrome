@@ -1,22 +1,28 @@
 {
   "manifest_version": 2,
-  "name": "Schedule Sync",
+  "name": "PASchedules",
   "description": "Example",
   "version": "0.1",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "browser_action": {
+    "default_icon": "icons/icon-128.png"
+  },
   "content_scripts": [
     {
       "matches": [
         "https://hiveschedule.andover.edu/hiveschedule/Pages/*"
       ],
       "js": [
-        "jquery-3.1.0.min.js",
-        "plugins/noty/packaged/jquery.noty.packaged.min.js",
-        "plugins/arrive/arrive.min.js",
-        "sync.js",
+        "resources/jquery-3.1.0.min.js",
+        "resources/noty/packaged/jquery.noty.packaged.min.js",
         "scrape.js",
-        "prettify.js"
+        "sync.js"
       ]
     }
   ],
-  "homepage_url": "http://path/to/homepage"
+  "homepage_url": "http://facebook.com/paschedules"
 }
