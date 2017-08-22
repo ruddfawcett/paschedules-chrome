@@ -1,63 +1,23 @@
-// Helpers
-
-var Notification = {
-  show: function(text, type) {
-    return self.show(text, type, null);
-  },
-  show: function(text, type, cb) {
-    return noty({
-      theme: 'relax',
-      layout: 'topRight',
-      text: text,
-      timeout: 5000,
-      type: type
-    });
-  }
-}
-
-var Log = function(obj) {
-  if (typeof obj === 'string') {
-    console.log(`[SchedSync] ${obj}`);
-    return;
-  }
-  console.log('[SchedSync]', obj);
-}
-
-var LS = {
-  prepend: 'schedsync-',
-  get: function(k) {
-    var self = this;
-    // return $.parseJSON(window.localStorage.getItem(this.prepend+k));
-    return window.localStorage.getItem(this.prepend+k);
-  },
-  set: function(k, v) {
-    if (typeof v === 'string') {
-      return window.localStorage.setItem(this.prepend+k.toString(), v);
-    }
-    // return window.localStorage.setItem(this.prepend+k.toString(), JSON.stringify(v));
-  }
-};
-
-
 // Scraping madness.
 
 var establishUser = function() {
-  Log('Parsing user information.');
+  Log('Establishing and scraping user information.');
 
   var P = $.Deferred();
 
   var name = $('#cphBody_lblNameValue').text();
+  var first = name.split(' ')[0];
   var email = $('#cphBody_lblEmailValue').text();
   var id = $('#cphBody_lblIdValue').text();
   var grad = $('#cphBody_lblClassValue').text();
 
   if (name.length && email.length && id.length && grad.length) {
-    LS.set('name', name);
-    LS.set('email', email);
-    LS.set('id', id);
-    LS.set('grad', grad);
+    LS.set('student_name', name);
+    LS.set('student_email', email);
+    LS.set('student_id', id);
+    LS.set('student_grad', grad);
 
-    Notification.show('Found student information.', 'information');
+    Notification.show(`Hi, ${first}! Thanks for using PASchedules.`, 'information');
 
     P.resolve();
   }
@@ -65,12 +25,10 @@ var establishUser = function() {
   return P.promise();
 };
 
-// Parsing schedules.
+// Scraping schedules.
 
 var parseSchedule = function() {
-  Log('Parsing schedule and flitering classes.');
-
-  Notification.show('Parsing through your schedule.', 'warning');
+  Log('Scraping schedule and flitering classes.');
 
   var P = $.Deferred();
 
@@ -78,55 +36,77 @@ var parseSchedule = function() {
   var courses = [];
 
   // Iterate through each row (skip day headers: 0 and after school: 11).
-  $rows.each((i, row) => {
+  $rows.each(function(i, row) {
     if (i == 0 || i == 11) {
       return true;
     }
 
     $cells = $(row).find('td');
-    $cells.each((j, cell) => {
+    $cells.each(function(j, cell) {
       // Skip the white and blue cells (non class blocks).
       var bg = $(cell).css('background-color');
       if (bg == 'rgb(255, 255, 255)' || bg == 'rgb(58, 167, 248)') {
         return true;
       }
-
-      if ($($(cell).find('span')[0]).text().trim() == "") {
+      // Skip free periods or lunches.
+      if ($($(cell).find('span')[0]).text().trim() == '') {
         return true;
       }
 
-      var period = $($(cell).find('div')[0]).text().trim().replace(' ', '');
-      var course = $($(cell).find('span')[0]).text().trim().replace(' ', '');
-      var teacher = $($(cell).find('span')[1]).text().trim();
-      var room = $($(cell).find('span')[2]).text().trim().replace(' ', '');
-
-      var course_id = `${course}-${teacher.replace(' ', '')}-${room}-${j}-${period}`;
-      course_id = course_id.toLowerCase();
-
-      var metadata =  {
-        "course_id": course_id,
-        "course": course,
-        "teacher": teacher
-      };
+      var metadata = parseCourse(cell, j);
 
       return courses.push(metadata);
     });
-  }).promise().done(() => {
+  }).promise().done(function() {
     P.resolve(courses);
-    Notification.show('Courses successfully parsed.', 'success');
+    Log('Courses parsed.');
   });
 
   return P.promise();
 }
 
 var syncData = function(courses) {
-  Notification.show('Syncing your schedule.', 'warning');
+  Log('Syncing schedule with server.');
 
+  var P = $.Deferred();
 
+  Notification.show('Syncing your schedule.', 'warning', false);
 
-  // Notification.show('Unable to sync your schedule.', 'error');
+  var data = {
+    student: {
+      id: LS.get('student_id'),
+      name: LS.get('student_name'),
+      email: LS.get('student_email'),
+      grad: LS.get('grad')
+    },
+    "courses": courses
+  };
+
+  $.ajax({
+    url: 'https://paschedules.herokuapp.com/sync.php',
+    type: 'POST',
+    traditional: true,
+    data: data,
+    success: function (result) {
+      $.noty.closeAll();
+      Log('Schedule successfully synced.');
+      Notification.show('Your schedule was synced!', 'success');
+      P.resolve();
+    },
+    error: function(XMLHttpRequest, textStatus, error) {
+      $.noty.closeAll();
+      Log(`POSTing failed. Status: ${textStatus}. Error: ${error}`);
+      Notification.show('Unable to sync your schedule.', 'error');
+      P.reject(error);
+    }
+  });
+
+  return P.promise();
 };
 
-establishUser().then(parseSchedule).then(syncData);
-
-// .then(flattenCourses).then(buildStudent);
+establishUser().then(parseSchedule).then(syncData).done(function() {
+  Log('Our work here is done.');
+}).catch(function(error) {
+  Log('An unexpected error occurred. Error:');
+  Log(error);
+});
