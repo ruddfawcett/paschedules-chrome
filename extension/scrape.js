@@ -72,7 +72,7 @@ var syncData = function(courses) {
 
   Notification.show('Syncing your schedule.', 'warning', false);
 
-  var data = {
+  var post_data = {
     student: {
       id: LS.get('student_id'),
       name: LS.get('student_name'),
@@ -85,8 +85,7 @@ var syncData = function(courses) {
   $.ajax({
     url: 'https://paschedules.herokuapp.com/sync.php',
     type: 'POST',
-    traditional: true,
-    data: data,
+    data: {data: post_data},
     success: function (result) {
       $.noty.closeAll();
       Log('Schedule successfully synced.');
