@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "PASchedules",
-  "description": "Example",
+  "description": "The latest and greatest PASchedules, built right into PANet.",
   "version": "0.1",
   "icons": {
     "16": "assets/icons/icon-16.png",
@@ -26,5 +26,5 @@
       ]
     }
   ],
-  "homepage_url": "http://facebook.com/paschedules"
+  "homepage_url": "https://www.facebook.com/paschedules"
 }
