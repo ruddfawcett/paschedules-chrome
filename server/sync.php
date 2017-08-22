@@ -2,6 +2,7 @@
   require('./connect.php');
 
   header_remove();
+  header('Access-Control-Allow-Origin: *');
   header('Content-type:application/json;charset=utf-8');
 
   if (!isset($_POST['student']) || !isset($_POST['courses'])) {

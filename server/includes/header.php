@@ -1,7 +1,4 @@
-<?php
-  header('Access-Control-Allow-Origin: *');
-  require('connect.php');
-?>
+<?php require('connect.php'); ?>
 <!DOCTYPE HTML>
 <html lang='en'>
   <head>
