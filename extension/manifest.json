@@ -6,7 +6,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://unify-ext.andover.edu/*"
+        "https://hiveschedule.andover.edu/hiveschedule/Pages/*"
       ],
       "js": [
         "jquery-3.1.0.min.js",

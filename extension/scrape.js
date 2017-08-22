@@ -39,124 +39,80 @@ var Log = function(obj) {
 
 // Scraping madness.
 
-var buildProfile = function() {
+var establishUser = function() {
+  Log('Parsing user information.');
+
   var P = $.Deferred();
-  $(document).arrive('#panel-1047_header_hd-textEl', () => {
-    Log('Personal data tab exists.');
 
-    var name = $(($('.x-form-display-field')[0])).text().replace('Surname :', '').trim();
-    var email = $(($('.x-form-display-field')[5])).text().replace('E-mail :', '').trim();
+  var name = $('#cphBody_lblNameValue').text();
+  var email = $('#cphBody_lblEmailValue').text();
+  var id = $('#cphBody_lblIdValue').text();
+  var grad = $('#cphBody_lblClassValue').text();
 
-    if (name.length && email.length) {
-      LS.set('name', name);
-      LS.set('email', email);
+  if (name.length && email.length && id.length && grad.length) {
+    LS.set('name', name);
+    LS.set('email', email);
+    LS.set('id', id);
+    LS.set('grad', grad);
 
-      $('#menu_7').click();
-    }
+    Notification.show('Finding your student information.', 'information');
 
     P.resolve();
-  });
+  }
 
   return P.promise();
 };
 
-var waitForCalendar = function() {
-  var P = $.Deferred();
-  $(document).arrive('iframe[src^="/extranet/Student/Calendar/Display"]', () => {
-    $('iframe[src^="/extranet/Student/Calendar/Display"]').on('load', function() {
-      Log('Calendar iFrame loaded.');
-      var notyShown = false;
-
-      var check = setInterval(() => {
-        var contents = $('iframe[src^="/extranet/Student/Calendar/Display"]').contents();
-
-        var days = contents.find('.fc-event-container');
-        var classes = contents.find('.fc-title');
-
-        if (days.length != 7 || classes.length == 0) {
-          if (!notyShown) {
-            Notification.show('Navigate to a full, weekly schedule of classes to begin syncing your schedule.', 'warning');
-            notyShown = true;
-          }
-        }
-        else {
-          Log('Loaded a week with classes.');
-          clearInterval(check);
-          P.resolve(contents);
-        }
-      }, 100);
-    });
-  });
-
-  return P.promise();
-}
-
 // Parsing schedules.
 
-var parseSchedule = function(contents) {
-  Log('Parsing classes.');
-  $.noty.closeAll();
+var parseSchedule = function() {
+  Log('Parsing schedule and flitering classes.');
+
+  Notification.show('Parsing through your schedule.', 'information');
+
   var P = $.Deferred();
 
-  var days = contents.find('.fc-event-container');
-  Notification.show(`Found ${contents.find('.fc-title').length} events on your calendar to parse.`, 'information');
-
+  var $rows = $('table#cphBody_tblGrid tr');
   var courses = [];
 
-  $.each(days, (d, day) => {
-    $.each($(day).find('a'), (c, day) => {
-      var name = $(day).find('.fc-title').text();
-      var parts = name.split(' - ');
+  // Iterate through each row (skip day headers: 0 and after school: 11).
+  $rows.each((i, row) => {
+    if (i == 0 || i == 11) {
+      return true;
+    }
 
-      var addTimeToCourse = function(course) {
-        var range = $(day).find('.fc-time').text();
-        var times = range.split(' - ');
-
-        courses[course].days[d.toString()] = {
-          start: times[0],
-          end: times[1]
-        };
+    $cells = $(row).find('td');
+    $cells.each((j, cell) => {
+      // Skip the white and blue cells (non class blocks).
+      var bg = $(cell).css('background-color');
+      if (bg == 'rgb(255, 255, 255)' || bg == 'rgb(58, 167, 248)') {
+        return true;
       }
 
-      if (parts[0] in courses) {
-        addTimeToCourse(parts[0]);
+      if ($($(cell).find('span')[0]).text().trim() == "") {
+        return true;
       }
-      else {
-        courses[parts[0]] = {
-          name: parts[1],
-          teacher: parts[2],
-          days: {}
-        };
-        addTimeToCourse(parts[0]);
-      }
+
+      var period = $($(cell).find('div')[0]).text();
+      var course = $($(cell).find('span')[0]).text();
+      var teacher = $($(cell).find('span')[1]).text();
+      var room = $($(cell).find('span')[2]).text();
+
+      var course_id = `${course}-${teacher}-${room}-${j}-${period}`;
+
+      return courses.push(course_id);
     });
+  }).promise().done(() => {
+    P.resolve(courses);
   });
 
-  P.resolve(courses);
   return P.promise();
 }
 
-var flattenCourses = function(courses) {
-  var P = $.Deferred();
-  Log('Flattening courses.');
-  var newCourses = [];
+var syncData = function(courses) {
+  Log(courses);
+};
 
-  for (k in courses) {
-    var course = courses[k];
-    course.code = k;
-    newCourses.push(course);
-  }
+establishUser().then(parseSchedule).then(syncData);
 
-  P.resolve(newCourses);
-  return P.promise();
-}
-
-var buildStudent = function(courses) {
-  var student = {
-    name: LS.get('name'),
-    email: LS.get('email'),
-    courses: courses
-  };
-}
-
-buildProfile().then(waitForCalendar).then(parseSchedule).then(flattenCourses).then(buildStudent);
+// .then(flattenCourses).then(buildStudent);
