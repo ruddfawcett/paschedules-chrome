@@ -4,13 +4,13 @@
   header_remove();
   header('Content-type:application/json;charset=utf-8');
 
-  if (!isset($_POST['data'])) {
+  if (!isset($_POST['student']) || !isset($_POST['courses'])) {
     http_response_code(422);
     echo json_encode(array('status' => 'error'));
     exit();
   }
 
-  $data = $_POST['data'];
+  $student = $_POST['student'];
 
   $query = "INSERT INTO paschedules (course_id, course_code, course_room, teacher_name, student_id, student_name, student_email, student_grad)
             VALUES (:course_id, :course_code, :course_room, :teacher_name, :student_id, :student_name, :student_email, :student_grad)
@@ -18,7 +18,7 @@
 
   $stmt = $db->prepare($query);
 
-  foreach ($data['courses'] as $course) {
+  foreach ($_POST['courses'] as $course) {
     $stmt->execute([
       ':course_id' => $course['course_id'],
       ':course_code' => $course['course_code'],
