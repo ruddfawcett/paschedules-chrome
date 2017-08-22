@@ -5,21 +5,22 @@
   header('Access-Control-Allow-Origin: *');
   header('Content-type:application/json;charset=utf-8');
 
-  if (!isset($_POST['student']) || !isset($_POST['courses'])) {
+  if (!isset($_POST['data'])) {
     http_response_code(422);
     echo json_encode(array('status' => 'error'));
     exit();
   }
 
-  $student = $_POST['student'];
+  $student = $_POST['data']['student'];
+  $courses = $_POST['data']['courses'];
 
   $query = "INSERT INTO paschedules (course_id, course_code, course_room, teacher_name, student_id, student_name, student_email, student_grad)
-            VALUES (:course_id, :course_code, :course_room, :teacher_name, :student_id, :student_name, :student_email, :student_grad)
-            ON CONFLICT (course_id, student_id) DO NOTHING";
-
+  VALUES (:course_id, :course_code, :course_room, :teacher_name, :student_id, :student_name, :student_email, :student_grad)
+  ON CONFLICT (course_id, student_id) DO NOTHING";
+  
   $stmt = $db->prepare($query);
 
-  foreach ($_POST['courses'] as $course) {
+  foreach ($courses as $course) {
     $stmt->execute([
       ':course_id' => $course['course_id'],
       ':course_code' => $course['course_code'],
