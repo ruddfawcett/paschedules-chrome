@@ -5,7 +5,7 @@ $(function() {
 
   $('<iframe />', {
     class: 'pas-iframe',
-    src: 'https://paschedules.herokuapp.com/'
+    src: 'https://paschedules.herokuapp.com/?v=2'
   }).appendTo('.pas-iframe-container');
 
   var bgs = [
@@ -31,7 +31,7 @@ $(function() {
     var course_info = parseCourse(this, $(this).index());
     var course_id = course_info['course_id'];
 
-    $('.pas-iframe').attr('src', `https://paschedules.herokuapp.com/roster.php?course=${course_id}`);
+    $('.pas-iframe').attr('src', `https://paschedules.herokuapp.com/roster.php?course=${course_id}&v=2`);
   });
 
 });

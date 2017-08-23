@@ -17,7 +17,7 @@
 <h3><?php echo $course['course_room']; ?></h3>
 <ul class='roster'>
   <?php foreach($results as $result): ?>
-    <li><?php echo $result['student_name'].' ('.$result['student_grad'].')'; ?></li>
+    <li><?php echo $result['student_name']; //.' ('.$result['student_grad'].')'?></li>
   <?php endforeach; ?>
 </ul>
 

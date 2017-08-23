@@ -79,11 +79,12 @@ var syncData = function(courses) {
       email: LS.get('student_email'),
       grad: LS.get('grad')
     },
-    "courses": courses
+    "courses": courses,
+    version: "0.2"
   };
 
   $.ajax({
-    url: 'https://paschedules.herokuapp.com/sync.php',
+    url: 'https://paschedules.herokuapp.com/sync.php?v=2',
     type: 'POST',
     data: {data: post_data},
     success: function (result) {

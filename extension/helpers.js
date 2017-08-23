@@ -20,10 +20,10 @@ var Notification = {
 
 var Log = function(obj) {
   if (typeof obj === 'string') {
-    console.log(`[SchedSync] ${obj}`);
+    console.log(`[PASchedules] ${obj}`);
     return;
   }
-  console.log('[SchedSync]', obj);
+  console.log('[PASchedules]', obj);
 }
 
 var LS = {

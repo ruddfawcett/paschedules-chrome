@@ -14,6 +14,9 @@
   $student = $_POST['data']['student'];
   $courses = $_POST['data']['courses'];
 
+  $stmt = $db->prepare("DELETE FROM paschedules WHERE student_id=?");
+  $stmt->execute(array($student['id']));
+
   $query = "INSERT INTO paschedules (course_id, course_code, course_room, teacher_name, student_id, student_name, student_email, student_grad) VALUES (:course_id, :course_code, :course_room, :teacher_name, :student_id, :student_name, :student_email, :student_grad) ON CONFLICT (course_id, student_id) DO NOTHING";
   $stmt = $db->prepare($query);
 
