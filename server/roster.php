@@ -2,6 +2,10 @@
 
   require('includes/header.php');
 
+  if (!isset($_GET['v'])) {
+    exit();
+  }
+
   if (!isset($_GET['course'])) {
     exit();
   }

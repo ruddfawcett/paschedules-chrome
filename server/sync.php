@@ -5,6 +5,10 @@
   header('Access-Control-Allow-Origin: *');
   header('Content-type:application/json;charset=utf-8');
 
+  if (!isset($_GET['v'])) {
+    exit();
+  }
+
   if (!isset($_POST['data'])) {
     http_response_code(422);
     echo json_encode(array('status' => 'error'));
