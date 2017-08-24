@@ -77,7 +77,7 @@ var syncData = function(courses) {
       id: LS.get('student_id'),
       name: LS.get('student_name'),
       email: LS.get('student_email'),
-      grad: LS.get('grad')
+      grad: LS.get('student_grad')
     },
     "courses": courses,
     version: "0.2"
