@@ -3,6 +3,7 @@
   require('includes/header.php');
 
   if (!isset($_GET['v'])) {
+    require('includes/update.php');
     exit();
   }
 
